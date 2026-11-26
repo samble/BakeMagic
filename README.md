@@ -14,7 +14,10 @@ Run `make` to list them all. The common ones:
 | `make dev` | run the API (:8000) and frontend (:5173) dev servers together; Ctrl-C stops both |
 | `make migrate` | apply pending migrations |
 | `make db-reset` | drop **all** tables and data, then re-run migrations (asks first; `YES=1` skips the prompt) |
+| `make seed-db` | migrate, then load the sample data in `seed/` (products, customers, orders, standing orders); `make db-reset YES=1 seed-db` gives a fresh, populated database |
 | `make test` | backend tests, frontend lint and type check, then a smoke test against the real API and a production frontend build |
+
+Seed data lives in `seed/`, a separate Alembic environment (`alembic -n seed ...`) with its own `alembic_seed_version` table, so `make migrate` never inserts data. The seed keeps the original row ids, so it expects those ids to be free; `alembic -n seed downgrade base` removes the seeded rows again.
 
 `make test-smoke` starts its own servers on ports 8001 and 4174, so it doesn't clash with `make dev`. It reads from the database in `DATABASE_URL` but only sends GET requests.
 

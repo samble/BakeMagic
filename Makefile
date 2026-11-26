@@ -7,7 +7,7 @@ NPM ?= npm
 VENV := .venv
 BIN := $(VENV)/bin
 
-.PHONY: help venv frontend-install setup dev dev-backend dev-frontend migrate db-reset \
+.PHONY: help venv frontend-install setup dev dev-backend dev-frontend migrate db-reset seed-db \
 	test test-backend test-frontend test-smoke lint
 
 help: ## List the available commands
@@ -47,6 +47,9 @@ migrate: ## Apply all pending migrations
 db-reset: ## Drop ALL tables and data, then re-run migrations (asks first; YES=1 skips)
 	$(BIN)/python scripts/drop_tables.py $(if $(YES),--yes)
 	$(MAKE) --no-print-directory migrate
+
+seed-db: migrate ## Load the sample data in seed/ (after migrating); expects those ids to be free
+	$(BIN)/alembic -n seed upgrade head
 
 # ---------- checks ----------
 
