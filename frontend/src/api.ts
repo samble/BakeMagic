@@ -36,7 +36,7 @@ export interface Customer {
   id: number
   first_name: string
   last_name: string
-  email: string
+  email: string // "" when not on file
   phone: string // "" when not on file
   address: string // "" when not on file
   created_at: string

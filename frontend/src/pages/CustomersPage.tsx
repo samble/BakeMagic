@@ -81,7 +81,7 @@ export default function CustomersPage() {
                     {c.first_name} {c.last_name}
                   </td>
                   <td>
-                    <a href={`mailto:${c.email}`}>{c.email}</a>
+                    {c.email && <a href={`mailto:${c.email}`}>{c.email}</a>}
                   </td>
                   <td>{c.phone}</td>
                   <td className="muted">{c.address}</td>
@@ -141,8 +141,8 @@ function CustomerForm({ customer, onDone }: { customer?: Customer; onDone: () =>
         <Field label="Last name">
           <input value={form.last_name} onChange={set('last_name')} maxLength={50} required />
         </Field>
-        <Field label="Email">
-          <input type="email" value={form.email} onChange={set('email')} maxLength={255} required />
+        <Field label="Email (optional)">
+          <input type="email" value={form.email} onChange={set('email')} maxLength={255} />
         </Field>
         <Field label="Phone (optional)">
           <input type="tel" value={form.phone} onChange={set('phone')} maxLength={30} />
