@@ -247,3 +247,36 @@ def test_customer_name_is_required(client: TestClient):
     assert created.status_code == 201
     assert created.json()["name"] == "Ada Baker"
     assert "first_name" not in created.json()
+
+
+def test_order_rejects_same_product_on_two_lines(client: TestClient):
+    customer = make_customer(client)
+    scone = make_product(client, code="SCONE")
+    bread = make_product(client, code="BREAD")
+
+    resp = client.post(
+        "/orders",
+        json={
+            "customer_id": customer["id"],
+            "lines": [
+                {"product_id": scone["id"], "quantity": 3},
+                {"product_id": bread["id"], "quantity": 1},
+                {"product_id": scone["id"], "quantity": 2},
+            ],
+        },
+    )
+    assert resp.status_code == 422
+    error = resp.json()["detail"][0]
+    assert error["type"] == "duplicate_product"
+    assert error["msg"] == (
+        f"Each product can only be on one line, but product {scone['id']} is on more than one. "
+        "Combine them into a single line with the total quantity."
+    )
+    assert client.get("/orders").json() == []  # nothing was created
+
+
+def test_database_rejects_same_product_on_two_order_lines(session: Session):
+    session.add_all([Customer(name="A"), Product(code="P", name="P", price=Decimal("1"))])
+    session.commit()
+    line = {"product_id": 1, "quantity": 1, "unit_price": Decimal("1")}
+    violate(session, Order(customer_id=1, lines=[OrderLine(**line), OrderLine(**line)]))

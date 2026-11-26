@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
 from app.db import IdPath, SessionDep
-from app.errors import check_violation_message
+from app.errors import constraint_violation_message
 from app.models import Product, ProductCreate, ProductPublic, ProductUpdate
 
 router = APIRouter(prefix="/products", tags=["products"])
@@ -24,7 +24,7 @@ def create_product(product_in: ProductCreate, session: SessionDep):
         session.commit()
     except IntegrityError as exc:
         session.rollback()
-        if check_violation_message(exc):
+        if constraint_violation_message(exc):
             raise  # reported as a 422 by the app's IntegrityError handler
         raise HTTPException(
             status.HTTP_409_CONFLICT, f"Product code {product_in.code!r} already exists"

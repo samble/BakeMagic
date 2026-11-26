@@ -60,6 +60,10 @@ export function QueryState({
 /**
  * Editable list of product + quantity rows. `products` are the choices offered;
  * pass retired products too if existing lines may refer to them.
+ *
+ * Each product can only be on one line (the API enforces this), so a line's dropdown
+ * leaves out products already chosen on other lines. Removing a line or changing its
+ * product makes that product available again.
  */
 export function LineEditor({
   lines,
@@ -72,6 +76,12 @@ export function LineEditor({
 }) {
   const updateLine = (key: number, patch: Partial<DraftLine>) =>
     setLines((current) => current.map((l) => (l.key === key ? { ...l, ...patch } : l)))
+
+  const chosen = new Set(lines.map((l) => l.productId).filter(Boolean))
+  const choicesFor = (line: DraftLine) =>
+    products.filter((p) => String(p.id) === line.productId || !chosen.has(String(p.id)))
+  // Every line needs its own product, so there can't be more lines than products.
+  const canAdd = lines.length < products.length
 
   return (
     <fieldset className="line-editor">
@@ -87,7 +97,7 @@ export function LineEditor({
               required
             >
               <option value="">Choose a product…</option>
-              {products.map((p) => (
+              {choicesFor(line).map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name} ({money(p.price)}){p.is_active ? '' : ' — retired'}
                 </option>
@@ -115,7 +125,13 @@ export function LineEditor({
           </div>
         )
       })}
-      <button type="button" className="quiet" onClick={() => setLines((current) => [...current, blankLine()])}>
+      <button
+        type="button"
+        className="quiet"
+        disabled={!canAdd}
+        title={canAdd ? undefined : 'Every product is already on a line'}
+        onClick={() => setLines((current) => [...current, blankLine()])}
+      >
         + Add item
       </button>
     </fieldset>

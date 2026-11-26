@@ -5,24 +5,32 @@ Each resource follows the SQLModel pattern: a `*Base` with shared fields, the
 bodies (`*Create`, `*Update`) and responses (`*Public`).
 """
 
+from collections import Counter
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
+from typing import Protocol
 
 from pydantic import field_validator, validate_email
-from sqlalchemy import CheckConstraint, DateTime, Index
+from pydantic_core import PydanticCustomError
+from sqlalchemy import CheckConstraint, DateTime, Index, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 # Largest value a Postgres INTEGER column (used for all ids) can hold.
 INT32_MAX = 2_147_483_647
 
-# Check constraints, and the API error message for each one when it is violated.
-CHECK_CONSTRAINT_MESSAGES = {
+# Check and unique constraints, and the API error message for each one when it is
+# violated. Request validation catches these first; the database is the backstop.
+CONSTRAINT_MESSAGES = {
     "ck_product_price_non_negative": "Price must be zero or greater",
     "ck_order_line_quantity_positive": "Quantity must be greater than zero",
     "ck_order_line_unit_price_non_negative": "Unit price must be zero or greater",
     "ck_standing_order_has_day": "A standing order needs at least one day",
     "ck_standing_order_line_quantity_positive": "Quantity must be greater than zero",
+    "uq_order_line_order_product": "Each product can only be on one line of an order",
+    "uq_standing_order_line_standing_order_product": (
+        "Each product can only be on one line of a standing order"
+    ),
 }
 
 
@@ -147,6 +155,7 @@ class OrderLine(SQLModel, table=True):
     __table_args__ = (
         CheckConstraint("quantity > 0", name="ck_order_line_quantity_positive"),
         CheckConstraint("unit_price >= 0", name="ck_order_line_unit_price_non_negative"),
+        UniqueConstraint("order_id", "product_id", name="uq_order_line_order_product"),
     )
 
     id: int | None = Field(default=None, primary_key=True)
@@ -183,10 +192,35 @@ class OrderLineCreate(SQLModel):
     quantity: int = Field(gt=0)
 
 
+class HasProductId(Protocol):
+    product_id: int
+
+
+def one_line_per_product[L: HasProductId](lines: list[L] | None) -> list[L] | None:
+    """Reject a product on more than one line; its quantities belong on a single line."""
+    if lines is None:
+        return lines
+    counts = Counter(line.product_id for line in lines)
+    repeated = sorted(pid for pid, n in counts.items() if n > 1)
+    if repeated:
+        which = f"product {repeated[0]} is" if len(repeated) == 1 else (
+            f"products {', '.join(map(str, repeated))} are"
+        )
+        raise PydanticCustomError(
+            "duplicate_product",
+            "Each product can only be on one line, but {which} on more than one. "
+            "Combine them into a single line with the total quantity.",
+            {"which": which, "product_ids": repeated},
+        )
+    return lines
+
+
 class OrderCreate(SQLModel):
     customer_id: int = Field(le=INT32_MAX)
     notes: str | None = Field(default=None, max_length=255)
     lines: list[OrderLineCreate] = Field(min_length=1)
+
+    _one_line_per_product = field_validator("lines")(one_line_per_product)
 
 
 class OrderStatusUpdate(SQLModel):
@@ -230,6 +264,11 @@ class StandingOrderLine(SQLModel, table=True):
     __tablename__ = "standing_order_line"
     __table_args__ = (
         CheckConstraint("quantity > 0", name="ck_standing_order_line_quantity_positive"),
+        UniqueConstraint(
+            "standing_order_id",
+            "product_id",
+            name="uq_standing_order_line_standing_order_product",
+        ),
     )
 
     id: int | None = Field(default=None, primary_key=True)
@@ -296,6 +335,7 @@ class StandingOrderCreate(SQLModel):
     is_active: bool = True
 
     _normalise_days = field_validator("days")(unique_days)
+    _one_line_per_product = field_validator("lines")(one_line_per_product)
 
 
 class StandingOrderUpdate(PatchSchema):
@@ -307,6 +347,7 @@ class StandingOrderUpdate(PatchSchema):
     is_active: bool | None = None
 
     _normalise_days = field_validator("days")(unique_days)
+    _one_line_per_product = field_validator("lines")(one_line_per_product)
 
 
 class StandingOrderLinePublic(SQLModel):

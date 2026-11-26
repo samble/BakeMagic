@@ -3,7 +3,7 @@
 product: 6 rows
 customer: 8 rows
 orders: 4 rows
-order_line: 9 rows
+order_line: 8 rows (two lines for one product merged; see migration 2de8cbd4d041)
 standing_order: 4 rows
 standing_order_line: 8 rows
 
@@ -120,8 +120,7 @@ SEED_ROWS = {
         {'id': 4, 'order_id': 2, 'product_id': 2, 'quantity': 4, 'unit_price': Decimal("6.00")},
         {'id': 5, 'order_id': 3, 'product_id': 1, 'quantity': 1, 'unit_price': Decimal("6.00")},
         {'id': 6, 'order_id': 4, 'product_id': 1, 'quantity': 2, 'unit_price': Decimal("6.00")},
-        {'id': 7, 'order_id': 4, 'product_id': 2, 'quantity': 1, 'unit_price': Decimal("6.00")},
-        {'id': 8, 'order_id': 4, 'product_id': 2, 'quantity': 1, 'unit_price': Decimal("6.00")},
+        {'id': 7, 'order_id': 4, 'product_id': 2, 'quantity': 2, 'unit_price': Decimal("6.00")},
         {'id': 9, 'order_id': 4, 'product_id': 3, 'quantity': 1, 'unit_price': Decimal("8.00")},
     ],
     'standing_order': [

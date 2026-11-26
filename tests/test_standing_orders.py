@@ -93,3 +93,24 @@ def test_delete(client: TestClient):
     assert client.delete(f"/standing-orders/{standing['id']}").status_code == 204
     assert client.get(f"/standing-orders/{standing['id']}").status_code == 404
     assert client.delete(f"/products/{product_id}").status_code == 204
+
+
+def test_same_product_on_two_lines_is_rejected(client: TestClient):
+    standing = make_standing_order(client)
+    product_id = standing["lines"][0]["product_id"]
+    duplicate = [
+        {"product_id": product_id, "quantity": 1},
+        {"product_id": product_id, "quantity": 2},
+    ]
+
+    created = client.post(
+        "/standing-orders",
+        json={"customer_id": standing["customer_id"], "days": ["mon"], "lines": duplicate},
+    )
+    assert created.status_code == 422
+    assert created.json()["detail"][0]["type"] == "duplicate_product"
+
+    updated = client.patch(f"/standing-orders/{standing['id']}", json={"lines": duplicate})
+    assert updated.status_code == 422
+    assert updated.json()["detail"][0]["type"] == "duplicate_product"
+    assert client.get(f"/standing-orders/{standing['id']}").json()["lines"] == standing["lines"]
