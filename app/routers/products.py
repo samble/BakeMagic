@@ -68,5 +68,5 @@ def delete_product(product_id: IdPath, session: SessionDep):
     except IntegrityError:
         session.rollback()
         raise HTTPException(
-            status.HTTP_409_CONFLICT, "Product is used by existing orders; deactivate it instead"
+            status.HTTP_409_CONFLICT, "Product is used by existing orders or standing orders; deactivate it instead"
         )

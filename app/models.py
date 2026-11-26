@@ -22,6 +22,8 @@ CHECK_CONSTRAINT_MESSAGES = {
     "ck_product_price_non_negative": "Price must be zero or greater",
     "ck_order_line_quantity_positive": "Quantity must be greater than zero",
     "ck_order_line_unit_price_non_negative": "Unit price must be zero or greater",
+    "ck_standing_order_has_day": "A standing order needs at least one day",
+    "ck_standing_order_line_quantity_positive": "Quantity must be greater than zero",
 }
 
 
@@ -207,3 +209,118 @@ class OrderPublic(SQLModel):
     created_at: datetime
     lines: list[OrderLinePublic]
     total: Decimal
+
+
+# ---------- Standing orders ----------
+# Recurring orders for a customer on chosen days of the week. A scheduled job
+# (not yet written) will turn each day's active standing orders into Orders.
+
+class Weekday(StrEnum):
+    """Days in Sunday-first order; each is also a boolean column on standing_order."""
+
+    sun = "sun"
+    mon = "mon"
+    tue = "tue"
+    wed = "wed"
+    thu = "thu"
+    fri = "fri"
+    sat = "sat"
+
+
+class StandingOrderLine(SQLModel, table=True):
+    __tablename__ = "standing_order_line"
+    __table_args__ = (
+        CheckConstraint("quantity > 0", name="ck_standing_order_line_quantity_positive"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    standing_order_id: int = Field(
+        foreign_key="standing_order.id", index=True, ondelete="CASCADE"
+    )
+    product_id: int = Field(foreign_key="product.id", index=True)
+    quantity: int = Field(gt=0)
+
+    standing_order: "StandingOrder" = Relationship(back_populates="lines")
+
+
+class StandingOrder(SQLModel, table=True):
+    __tablename__ = "standing_order"
+    __table_args__ = (
+        CheckConstraint(
+            " OR ".join(day.value for day in Weekday), name="ck_standing_order_has_day"
+        ),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    customer_id: int = Field(foreign_key="customer.id", index=True)
+    # One column per weekday, so the daily job can select with e.g. `WHERE mon`.
+    sun: bool = False
+    mon: bool = False
+    tue: bool = False
+    wed: bool = False
+    thu: bool = False
+    fri: bool = False
+    sat: bool = False
+    notes: str | None = Field(default=None, max_length=255)
+    # Paused standing orders are kept but skipped by the daily job.
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=utcnow, sa_type=DateTime(timezone=True))
+
+    lines: list[StandingOrderLine] = Relationship(
+        back_populates="standing_order", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+
+    @property
+    def days(self) -> list[Weekday]:
+        return [day for day in Weekday if getattr(self, day.value)]
+
+    def set_days(self, days: list[Weekday]) -> None:
+        for day in Weekday:
+            setattr(self, day.value, day in days)
+
+
+class StandingOrderLineCreate(SQLModel):
+    product_id: int = Field(le=INT32_MAX)
+    quantity: int = Field(gt=0)
+
+
+def unique_days(days: list[Weekday]) -> list[Weekday]:
+    """Drop duplicates and sort Sunday first."""
+    return [day for day in Weekday if day in days]
+
+
+class StandingOrderCreate(SQLModel):
+    customer_id: int = Field(le=INT32_MAX)
+    days: list[Weekday] = Field(min_length=1)
+    lines: list[StandingOrderLineCreate] = Field(min_length=1)
+    notes: str | None = Field(default=None, max_length=255)
+    is_active: bool = True
+
+    _normalise_days = field_validator("days")(unique_days)
+
+
+class StandingOrderUpdate(PatchSchema):
+    """Any field may be left out. `lines`, when sent, replaces all existing lines."""
+
+    days: list[Weekday] | None = Field(default=None, min_length=1)
+    lines: list[StandingOrderLineCreate] | None = Field(default=None, min_length=1)
+    notes: str | None = Field(default=None, max_length=255)
+    is_active: bool | None = None
+
+    _normalise_days = field_validator("days")(unique_days)
+
+
+class StandingOrderLinePublic(SQLModel):
+    id: int
+    product_id: int
+    quantity: int
+
+
+class StandingOrderPublic(SQLModel):
+    id: int
+    customer_id: int
+    days: list[Weekday]
+    notes: str | None
+    is_active: bool
+    created_at: datetime
+    lines: list[StandingOrderLinePublic]

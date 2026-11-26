@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from app.config import get_settings
 from app.db import SessionDep
 from app.errors import integrity_error_handler
-from app.routers import customers, orders, products
+from app.routers import customers, orders, products, standing_orders
 
 app = FastAPI(title=get_settings().app_name, version="0.1.0")
 app.add_exception_handler(IntegrityError, integrity_error_handler)
@@ -13,6 +13,7 @@ app.add_exception_handler(IntegrityError, integrity_error_handler)
 app.include_router(products.router)
 app.include_router(customers.router)
 app.include_router(orders.router)
+app.include_router(standing_orders.router)
 
 
 @app.get("/health", tags=["health"])

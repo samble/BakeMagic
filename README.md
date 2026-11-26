@@ -58,6 +58,7 @@ Start the API first. The dev server forwards `/api/*` to it at `http://127.0.0.1
 |---|---|
 | Orders | filter by status, expand an order to see its lines, move it to the next status or cancel it |
 | New order | pick a customer and products (retired products are hidden), live total, notes |
+| Standing orders | recurring weekly orders: pick a customer, days (Sun–Sat) and items; filter by day, pause, edit, delete |
 | Products | add, edit inline, retire or put back on sale, delete (refused if the product is on an order) |
 | Customers | add, edit, search |
 
@@ -76,8 +77,12 @@ Start the API first. The dev server forwards `/api/*` to it at `http://127.0.0.1
 | `POST` `GET` | `/orders` | create with lines, list (`customer_id`, `status`) |
 | `GET` | `/orders/{id}` | includes lines and total |
 | `PATCH` | `/orders/{id}/status` | completed and cancelled orders are locked |
+| `POST` `GET` | `/standing-orders` | create, list (`customer_id`, `day`, `active_only`) |
+| `GET` `PATCH` `DELETE` | `/standing-orders/{id}` | PATCH can change `days`, `notes`, `is_active`, and `lines` (replaces all lines); the customer is fixed |
 
 Order lines store the product's price at the time of the order, so repricing a product never changes past orders.
+
+Standing orders are recurring weekly orders for a customer on chosen days. They store products and quantities but no prices; a daily job (not yet built) will turn each day's active standing orders into regular orders at that day's prices.
 
 ## Migrations
 

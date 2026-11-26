@@ -2,17 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { api } from '../api'
-import { ErrorNote, Field, PageHeader } from '../components'
-import { fromCents, money, toCents } from '../format'
-
-interface DraftLine {
-  key: number
-  productId: string
-  quantity: string
-}
-
-let nextKey = 1
-const blankLine = (): DraftLine => ({ key: nextKey++, productId: '', quantity: '1' })
+import { ErrorNote, Field, LineEditor, PageHeader } from '../components'
+import { blankLine, lineCents, type DraftLine } from '../lines'
+import { fromCents, money } from '../format'
 
 export default function NewOrderPage() {
   const navigate = useNavigate()
@@ -25,18 +17,8 @@ export default function NewOrderPage() {
   const [lines, setLines] = useState<DraftLine[]>(() => [blankLine()])
 
   const activeProducts = products.data?.filter((p) => p.is_active) ?? []
-  const priceOf = (productId: string) => activeProducts.find((p) => String(p.id) === productId)?.price
-
-  const updateLine = (key: number, patch: Partial<DraftLine>) =>
-    setLines((current) => current.map((l) => (l.key === key ? { ...l, ...patch } : l)))
-
-  const lineCents = (line: DraftLine) => {
-    const price = priceOf(line.productId)
-    const qty = Number(line.quantity)
-    return price && Number.isInteger(qty) && qty > 0 ? toCents(price) * qty : 0
-  }
-  const totalCents = lines.reduce((sum, l) => sum + lineCents(l), 0)
-  const validLines = lines.filter((l) => lineCents(l) > 0)
+  const totalCents = lines.reduce((sum, l) => sum + lineCents(l, activeProducts), 0)
+  const validLines = lines.filter((l) => lineCents(l, activeProducts) > 0)
   const canSubmit = customerId !== '' && validLines.length > 0 && validLines.length === lines.length
 
   const createOrder = useMutation({
@@ -98,48 +80,7 @@ export default function NewOrderPage() {
           </Field>
         </div>
 
-        <fieldset className="line-editor">
-          <legend>Items</legend>
-          {lines.map((line, index) => (
-            <div className="line" key={line.key}>
-              <select
-                aria-label={`Product for item ${index + 1}`}
-                value={line.productId}
-                onChange={(e) => updateLine(line.key, { productId: e.target.value })}
-                required
-              >
-                <option value="">Choose a product…</option>
-                {activeProducts.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({money(p.price)})
-                  </option>
-                ))}
-              </select>
-              <input
-                aria-label={`Quantity for item ${index + 1}`}
-                type="number"
-                min={1}
-                step={1}
-                value={line.quantity}
-                onChange={(e) => updateLine(line.key, { quantity: e.target.value })}
-                required
-              />
-              <span className="num line-total">{lineCents(line) ? money(fromCents(lineCents(line))) : '—'}</span>
-              <button
-                type="button"
-                className="icon"
-                aria-label={`Remove item ${index + 1}`}
-                disabled={lines.length === 1}
-                onClick={() => setLines((current) => current.filter((l) => l.key !== line.key))}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-          <button type="button" className="quiet" onClick={() => setLines((current) => [...current, blankLine()])}>
-            + Add item
-          </button>
-        </fieldset>
+        <LineEditor lines={lines} setLines={setLines} products={activeProducts} />
 
         <div className="form-footer">
           <div className="total">

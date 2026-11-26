@@ -67,6 +67,37 @@ export interface OrderCreate {
   lines: { product_id: number; quantity: number }[]
 }
 
+export type Weekday = 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat'
+
+export const WEEKDAYS: Weekday[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+
+export interface StandingOrderLine {
+  id: number
+  product_id: number
+  quantity: number
+}
+
+export interface StandingOrder {
+  id: number
+  customer_id: number
+  days: Weekday[] // Sunday-first, no duplicates, at least one
+  notes: string | null
+  is_active: boolean
+  created_at: string
+  lines: StandingOrderLine[]
+}
+
+export interface StandingOrderCreate {
+  customer_id: number
+  days: Weekday[]
+  lines: { product_id: number; quantity: number }[]
+  notes?: string | null
+  is_active?: boolean
+}
+
+// The customer can't be changed after creation. `lines`, when sent, replaces all lines.
+export type StandingOrderUpdate = Partial<Omit<StandingOrderCreate, 'customer_id'>>
+
 export class ApiError extends Error {
   readonly status: number
   constructor(status: number, message: string) {
@@ -127,5 +158,12 @@ export const api = {
     create: (data: OrderCreate) => request<Order>('/orders', send('POST', data)),
     setStatus: (id: number, status: OrderStatus) =>
       request<Order>(`/orders/${id}/status`, send('PATCH', { status })),
+  },
+  standingOrders: {
+    list: () => request<StandingOrder[]>('/standing-orders?limit=200'),
+    create: (data: StandingOrderCreate) => request<StandingOrder>('/standing-orders', send('POST', data)),
+    update: (id: number, data: StandingOrderUpdate) =>
+      request<StandingOrder>(`/standing-orders/${id}`, send('PATCH', data)),
+    remove: (id: number) => request<void>(`/standing-orders/${id}`, send('DELETE')),
   },
 }

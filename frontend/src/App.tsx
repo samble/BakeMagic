@@ -3,6 +3,7 @@ import CustomersPage from './pages/CustomersPage'
 import NewOrderPage from './pages/NewOrderPage'
 import OrdersPage from './pages/OrdersPage'
 import ProductsPage from './pages/ProductsPage'
+import StandingOrdersPage from './pages/StandingOrdersPage'
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         </NavLink>
         <nav className="nav">
           <NavLink to="/orders">Orders</NavLink>
+          <NavLink to="/standing-orders">Standing orders</NavLink>
           <NavLink to="/products">Products</NavLink>
           <NavLink to="/customers">Customers</NavLink>
         </nav>
@@ -23,6 +25,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/orders" replace />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/new" element={<NewOrderPage />} />
+          <Route path="/standing-orders" element={<StandingOrdersPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="*" element={<p className="muted">Page not found.</p>} />

@@ -1,4 +1,4 @@
-import type { OrderStatus } from './api'
+import type { OrderStatus, Weekday } from './api'
 
 const currency = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' })
 const dateTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
@@ -29,3 +29,23 @@ export const isFinished = (status: OrderStatus) => status === 'completed' || sta
 // Sum line totals in integer cents to avoid floating-point drift.
 export const toCents = (value: string | number) => Math.round(Number(value) * 100)
 export const fromCents = (cents: number) => (cents / 100).toFixed(2)
+
+export const DAY_LABELS: Record<Weekday, string> = {
+  sun: 'Sunday',
+  mon: 'Monday',
+  tue: 'Tuesday',
+  wed: 'Wednesday',
+  thu: 'Thursday',
+  fri: 'Friday',
+  sat: 'Saturday',
+}
+
+export const DAY_SHORT: Record<Weekday, string> = {
+  sun: 'Sun',
+  mon: 'Mon',
+  tue: 'Tue',
+  wed: 'Wed',
+  thu: 'Thu',
+  fri: 'Fri',
+  sat: 'Sat',
+}

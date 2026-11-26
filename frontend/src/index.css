@@ -247,6 +247,23 @@ tr.editing td { background: var(--surface-2); }
 .detail-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 12px 14px 0; }
 .error-row td { padding-top: 0; border-top: none !important; }
 
+/* ---------- standing orders ---------- */
+
+.day-pills { display: inline-flex; gap: 3px; }
+.day-pill {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-2);
+  opacity: 0.55;
+}
+.day-pill.on { color: var(--accent-text); background: var(--accent); opacity: 1; }
+
 /* ---------- feedback ---------- */
 
 .badge {

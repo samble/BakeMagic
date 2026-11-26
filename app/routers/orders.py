@@ -5,15 +5,14 @@ from sqlmodel import select
 from app.db import IdPath, SessionDep
 from app.models import (
     INT32_MAX,
-    Customer,
     Order,
     OrderCreate,
     OrderLine,
     OrderPublic,
     OrderStatus,
     OrderStatusUpdate,
-    Product,
 )
+from app.routers.common import require_active_products, require_customer
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -27,19 +26,8 @@ def get_order_or_404(session: SessionDep, order_id: int) -> Order:
 
 @router.post("", response_model=OrderPublic, status_code=status.HTTP_201_CREATED)
 def create_order(order_in: OrderCreate, session: SessionDep):
-    if session.get(Customer, order_in.customer_id) is None:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Customer does not exist")
-
-    product_ids = {line.product_id for line in order_in.lines}
-    products = {
-        p.id: p for p in session.exec(select(Product).where(Product.id.in_(product_ids))).all()
-    }
-    missing = sorted(product_ids - products.keys())
-    if missing:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, f"Unknown product ids: {missing}")
-    inactive = sorted(pid for pid, p in products.items() if not p.is_active)
-    if inactive:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, f"Inactive product ids: {inactive}")
+    require_customer(session, order_in.customer_id)
+    products = require_active_products(session, {line.product_id for line in order_in.lines})
 
     order = Order(
         customer_id=order_in.customer_id,
