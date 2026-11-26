@@ -30,6 +30,7 @@ include = ["app*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]  # lets tests import shared helpers as `tests.<module>`
 
 [tool.ruff]
 target-version = "py312"

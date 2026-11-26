@@ -4,6 +4,20 @@ A bakery management API: products, customers and orders. Understands scheduling 
 
 Built with **FastAPI**, **SQLModel** (SQLAlchemy 2 + Pydantic 2), **PostgreSQL** via psycopg 3, and **Alembic** for migrations.
 
+## Make commands
+
+Run `make` to list them all. The common ones:
+
+| Command | What it does |
+|---|---|
+| `make setup` | create `.venv`, install the backend with dev tools, and install frontend dependencies |
+| `make dev` | run the API (:8000) and frontend (:5173) dev servers together; Ctrl-C stops both |
+| `make migrate` | apply pending migrations |
+| `make db-reset` | drop **all** tables and data, then re-run migrations (asks first; `YES=1` skips the prompt) |
+| `make test` | backend tests, frontend lint and type check, then a smoke test against the real API and a production frontend build |
+
+`make test-smoke` starts its own servers on ports 8001 and 4174, so it doesn't clash with `make dev`. It reads from the database in `DATABASE_URL` but only sends GET requests.
+
 ## Setup
 
 ```bash
