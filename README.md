@@ -1,6 +1,6 @@
 # BakeMagic
 
-A bakery management API: products, customers and orders.
+A bakery management API: products, customers and orders. Understands scheduling for days and has customer logins for viewing invoices.
 
 Built with **FastAPI**, **SQLModel** (SQLAlchemy 2 + Pydantic 2), **PostgreSQL** via psycopg 3, and **Alembic** for migrations.
 
