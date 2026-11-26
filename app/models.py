@@ -89,8 +89,9 @@ class CustomerBase(SQLModel):
     last_name: str = Field(max_length=50)
     # Blank means no email on file. Unique only when non-empty: see ix_customer_email below.
     email: str = Field(default="", max_length=255, sa_column_kwargs={"server_default": ""})
-    phone: str | None = Field(default=None, max_length=30)
-    address: str | None = Field(default=None, max_length=255)
+    # Blank means not on file.
+    phone: str = Field(default="", max_length=30, sa_column_kwargs={"server_default": ""})
+    address: str = Field(default="", max_length=255, sa_column_kwargs={"server_default": ""})
 
     _check_email = field_validator("email")(blank_or_email)
 

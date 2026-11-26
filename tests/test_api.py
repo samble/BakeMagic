@@ -226,3 +226,16 @@ def test_other_integrity_errors_are_not_turned_into_422(session: Session):
 
 def test_free_product_is_allowed(client: TestClient):
     assert make_product(client, code="FREE", price="0")["price"] == "0.00"
+
+
+def test_customer_phone_and_address_may_be_blank(client: TestClient):
+    created = client.post("/customers", json={"first_name": "A", "last_name": "B"}).json()
+    assert created["phone"] == "" and created["address"] == ""
+
+    url = f"/customers/{created['id']}"
+    filled = client.patch(url, json={"phone": "555-0100", "address": "1 Bun Lane"}).json()
+    assert filled["phone"] == "555-0100" and filled["address"] == "1 Bun Lane"
+
+    cleared = client.patch(url, json={"phone": "", "address": ""})
+    assert cleared.status_code == 200
+    assert cleared.json()["phone"] == "" and cleared.json()["address"] == ""

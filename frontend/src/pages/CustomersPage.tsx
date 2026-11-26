@@ -6,13 +6,13 @@ import { when } from '../format'
 
 const BLANK: CustomerCreate = { first_name: '', last_name: '', email: '', phone: '', address: '' }
 
-// Empty optional fields are sent as null rather than "".
+// Optional fields are sent as "" when empty; the API rejects null.
 const clean = (c: CustomerCreate): CustomerCreate => ({
   first_name: c.first_name.trim(),
   last_name: c.last_name.trim(),
   email: c.email.trim(),
-  phone: c.phone?.trim() || null,
-  address: c.address?.trim() || null,
+  phone: c.phone.trim(),
+  address: c.address.trim(),
 })
 
 export default function CustomersPage() {
@@ -22,7 +22,7 @@ export default function CustomersPage() {
 
   const term = search.trim().toLowerCase()
   const visible = customers.data?.filter((c) =>
-    `${c.first_name} ${c.last_name} ${c.email} ${c.phone ?? ''}`.toLowerCase().includes(term),
+    `${c.first_name} ${c.last_name} ${c.email} ${c.phone}`.toLowerCase().includes(term),
   )
 
   return (
@@ -109,8 +109,8 @@ function CustomerForm({ customer, onDone }: { customer?: Customer; onDone: () =>
           first_name: customer.first_name,
           last_name: customer.last_name,
           email: customer.email,
-          phone: customer.phone ?? '',
-          address: customer.address ?? '',
+          phone: customer.phone,
+          address: customer.address,
         }
       : BLANK,
   )
@@ -145,10 +145,10 @@ function CustomerForm({ customer, onDone }: { customer?: Customer; onDone: () =>
           <input type="email" value={form.email} onChange={set('email')} maxLength={255} required />
         </Field>
         <Field label="Phone (optional)">
-          <input type="tel" value={form.phone ?? ''} onChange={set('phone')} maxLength={30} />
+          <input type="tel" value={form.phone} onChange={set('phone')} maxLength={30} />
         </Field>
         <Field label="Address (optional)" wide>
-          <input value={form.address ?? ''} onChange={set('address')} maxLength={255} />
+          <input value={form.address} onChange={set('address')} maxLength={255} />
         </Field>
       </div>
       <div className="form-footer">
