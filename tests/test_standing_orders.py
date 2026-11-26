@@ -54,7 +54,9 @@ def test_list_filters(client: TestClient):
     mon = make_standing_order(client, days=["mon"])
     sat = make_standing_order(client, days=["sat"], is_active=False)
 
-    ids = lambda query="": [s["id"] for s in client.get(f"/standing-orders{query}").json()]
+    def ids(query=""):
+        return [s["id"] for s in client.get(f"/standing-orders{query}").json()]
+
     assert ids() == [mon["id"], sat["id"]]
     assert ids("?day=mon") == [mon["id"]]
     assert ids("?day=sat&active_only=true") == []
@@ -73,7 +75,7 @@ def test_update(client: TestClient):
     assert resp.json()["lines"] == standing["lines"]  # untouched
 
     resp = client.patch(url, json={"lines": [{"product_id": bread["id"], "quantity": 5}]})
-    assert [(l["product_id"], l["quantity"]) for l in resp.json()["lines"]] == [(bread["id"], 5)]
+    assert [(line["product_id"], line["quantity"]) for line in resp.json()["lines"]] == [(bread["id"], 5)]
 
     assert client.patch(url, json={"days": []}).status_code == 422
     assert client.patch(url, json={"lines": []}).status_code == 422

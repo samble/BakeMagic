@@ -1,9 +1,11 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+from sqlmodel import SQLModel
+
+import app.models  # noqa: F401  (registers every table on SQLModel.metadata)
+from app.config import get_settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -13,11 +15,6 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-from sqlmodel import SQLModel
-
-import app.models  # noqa: F401  (registers every table on SQLModel.metadata)
-from app.config import get_settings
 
 # Use the app's DATABASE_URL instead of a URL hardcoded in alembic.ini.
 # Escape % so ConfigParser interpolation doesn't choke on URL-encoded passwords.

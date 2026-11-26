@@ -21,6 +21,6 @@ def health(session: SessionDep):
     """Liveness plus a round trip to the database."""
     try:
         session.exec(text("SELECT 1"))
-    except Exception:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Database unavailable")
+    except Exception as exc:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Database unavailable") from exc
     return {"status": "ok"}

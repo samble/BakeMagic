@@ -5,16 +5,15 @@ Revises: e5f2c8a1d7b3
 Create Date: 2026-11-26 15:00:00
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
 revision: str = 'f1b6d3e9a4c2'
-down_revision: Union[str, Sequence[str], None] = 'e5f2c8a1d7b3'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = 'e5f2c8a1d7b3'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 COLUMNS = ('phone', 'address')
 

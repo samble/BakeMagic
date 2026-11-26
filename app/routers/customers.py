@@ -18,9 +18,11 @@ def get_customer_or_404(session: SessionDep, customer_id: int) -> Customer:
 def commit_or_409(session: SessionDep) -> None:
     try:
         session.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         session.rollback()
-        raise HTTPException(status.HTTP_409_CONFLICT, "A customer with that email already exists")
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "A customer with that email already exists"
+        ) from exc
 
 
 @router.post("", response_model=CustomerPublic, status_code=status.HTTP_201_CREATED)

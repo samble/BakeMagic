@@ -5,14 +5,13 @@ Each resource follows the SQLModel pattern: a `*Base` with shared fields, the
 bodies (`*Create`, `*Update`) and responses (`*Public`).
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
 
 from pydantic import field_validator, validate_email
 from sqlalchemy import CheckConstraint, DateTime, Index
 from sqlmodel import Field, Relationship, SQLModel
-
 
 # Largest value a Postgres INTEGER column (used for all ids) can hold.
 INT32_MAX = 2_147_483_647
@@ -28,7 +27,7 @@ CHECK_CONSTRAINT_MESSAGES = {
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class PatchSchema(SQLModel):

@@ -42,6 +42,17 @@ Then create the tables:
 - Interactive docs: http://127.0.0.1:8000/docs
 - Health check (includes a database round trip): http://127.0.0.1:8000/health
 
+## Lint
+
+[Ruff](https://docs.astral.sh/ruff/) is configured in `pyproject.toml` (installed with the `dev` extra):
+
+```bash
+.venv/bin/ruff check .         # report problems
+.venv/bin/ruff check . --fix   # fix what can be fixed automatically
+```
+
+New Alembic migrations are run through `ruff check --fix` automatically when generated.
+
 ## Web frontend
 
 A React + TypeScript app (Vite, React Router, TanStack Query) in `frontend/`. It needs Node.js 20.19+.

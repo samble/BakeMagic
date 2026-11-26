@@ -26,7 +26,9 @@ def create_product(product_in: ProductCreate, session: SessionDep):
         session.rollback()
         if check_violation_message(exc):
             raise  # reported as a 422 by the app's IntegrityError handler
-        raise HTTPException(status.HTTP_409_CONFLICT, f"Product code {product_in.code!r} already exists")
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, f"Product code {product_in.code!r} already exists"
+        ) from exc
     session.refresh(product)
     return product
 
@@ -65,8 +67,9 @@ def delete_product(product_id: IdPath, session: SessionDep):
     session.delete(product)
     try:
         session.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         session.rollback()
         raise HTTPException(
-            status.HTTP_409_CONFLICT, "Product is used by existing orders or standing orders; deactivate it instead"
-        )
+            status.HTTP_409_CONFLICT,
+            "Product is used by existing orders or standing orders; deactivate it instead",
+        ) from exc
