@@ -1,0 +1,19 @@
+# Local Postgres for development: `docker compose up -d`
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: bakemagic
+      POSTGRES_PASSWORD: bakemagic
+      POSTGRES_DB: bakemagic
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bakemagic"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  pgdata:
