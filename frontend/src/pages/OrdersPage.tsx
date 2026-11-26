@@ -21,7 +21,7 @@ export default function OrdersPage() {
   const products = useQuery({ queryKey: ['products'], queryFn: api.products.list })
 
   const customerName = useMemo(() => {
-    const names = new Map(customers.data?.map((c) => [c.id, `${c.first_name} ${c.last_name}`]))
+    const names = new Map(customers.data?.map((c) => [c.id, c.name]))
     return (id: number) => names.get(id) ?? `Customer #${id}`
   }, [customers.data])
 

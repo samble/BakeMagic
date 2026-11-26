@@ -20,7 +20,7 @@ def make_product(client: TestClient, code="CAKE-01", price="24.50", **extra) -> 
 
 def make_customer(client: TestClient, email="ada@example.com") -> dict:
     resp = client.post(
-        "/customers", json={"first_name": "Ada", "last_name": "Baker", "email": email}
+        "/customers", json={"name": "Ada Baker", "email": email}
     )
     assert resp.status_code == 201, resp.text
     return resp.json()
@@ -50,11 +50,11 @@ def test_product_validation_and_duplicates(client: TestClient):
 
 
 def test_customer_rejects_bad_and_duplicate_email(client: TestClient):
-    bad = client.post("/customers", json={"first_name": "A", "last_name": "B", "email": "nope"})
+    bad = client.post("/customers", json={"name": "A B", "email": "nope"})
     assert bad.status_code == 422
     make_customer(client)
     dup = client.post(
-        "/customers", json={"first_name": "C", "last_name": "D", "email": "ada@example.com"}
+        "/customers", json={"name": "C D", "email": "ada@example.com"}
     )
     assert dup.status_code == 409
 
@@ -129,7 +129,7 @@ def test_patch_rejects_null_but_allows_omitting_fields(client: TestClient):
     for field in ("name", "description", "price", "is_active"):
         resp = client.patch(f"/products/{product['id']}", json={field: None})
         assert resp.status_code == 422, field
-    for field in ("first_name", "last_name", "email", "phone", "address"):
+    for field in ("name", "email", "phone", "address"):
         resp = client.patch(f"/customers/{customer['id']}", json={field: None})
         assert resp.status_code == 422, field
 
@@ -140,7 +140,7 @@ def test_patch_rejects_null_but_allows_omitting_fields(client: TestClient):
 
 def test_customer_email_may_be_blank(client: TestClient):
     def create(**email):
-        return client.post("/customers", json={"first_name": "A", "last_name": "B", **email})
+        return client.post("/customers", json={"name": "A B", **email})
 
     # Omitted or "" both mean no email, and several customers can have none.
     assert create().json()["email"] == ""
@@ -196,7 +196,7 @@ def test_check_constraints_return_422_with_message(session: Session):
     assert resp.status_code == 422
     assert resp.body == b'{"detail":"Price must be zero or greater"}'
 
-    customer = Customer(first_name="A", last_name="B")
+    customer = Customer(name="A B")
     session.add_all([customer, Product(code="FREE", name="Free", price=Decimal("0"))])
     session.commit()
 
@@ -229,7 +229,7 @@ def test_free_product_is_allowed(client: TestClient):
 
 
 def test_customer_phone_and_address_may_be_blank(client: TestClient):
-    created = client.post("/customers", json={"first_name": "A", "last_name": "B"}).json()
+    created = client.post("/customers", json={"name": "A B"}).json()
     assert created["phone"] == "" and created["address"] == ""
 
     url = f"/customers/{created['id']}"
@@ -239,3 +239,11 @@ def test_customer_phone_and_address_may_be_blank(client: TestClient):
     cleared = client.patch(url, json={"phone": "", "address": ""})
     assert cleared.status_code == 200
     assert cleared.json()["phone"] == "" and cleared.json()["address"] == ""
+
+
+def test_customer_name_is_required(client: TestClient):
+    assert client.post("/customers", json={"email": "ada@example.com"}).status_code == 422
+    created = client.post("/customers", json={"name": "Ada Baker"})
+    assert created.status_code == 201
+    assert created.json()["name"] == "Ada Baker"
+    assert "first_name" not in created.json()

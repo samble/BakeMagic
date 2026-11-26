@@ -34,8 +34,7 @@ export type ProductUpdate = Partial<Pick<Product, 'name' | 'description' | 'pric
 
 export interface Customer {
   id: number
-  first_name: string
-  last_name: string
+  name: string
   email: string // "" when not on file
   phone: string // "" when not on file
   address: string // "" when not on file

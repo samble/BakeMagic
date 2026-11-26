@@ -87,7 +87,7 @@ export default function NewOrderPage() {
               <option value="">Choose a customer…</option>
               {customers.data?.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.first_name} {c.last_name}
+                  {c.name}
                   {c.email && ` — ${c.email}`}
                 </option>
               ))}

@@ -4,12 +4,11 @@ import { api, type Customer, type CustomerCreate } from '../api'
 import { ErrorNote, Field, PageHeader, QueryState } from '../components'
 import { when } from '../format'
 
-const BLANK: CustomerCreate = { first_name: '', last_name: '', email: '', phone: '', address: '' }
+const BLANK: CustomerCreate = { name: '', email: '', phone: '', address: '' }
 
 // Optional fields are sent as "" when empty; the API rejects null.
 const clean = (c: CustomerCreate): CustomerCreate => ({
-  first_name: c.first_name.trim(),
-  last_name: c.last_name.trim(),
+  name: c.name.trim(),
   email: c.email.trim(),
   phone: c.phone.trim(),
   address: c.address.trim(),
@@ -22,7 +21,7 @@ export default function CustomersPage() {
 
   const term = search.trim().toLowerCase()
   const visible = customers.data?.filter((c) =>
-    `${c.first_name} ${c.last_name} ${c.email} ${c.phone}`.toLowerCase().includes(term),
+    `${c.name} ${c.email} ${c.phone}`.toLowerCase().includes(term),
   )
 
   return (
@@ -77,9 +76,7 @@ export default function CustomersPage() {
             <tbody>
               {visible?.map((c) => (
                 <tr key={c.id}>
-                  <td>
-                    {c.first_name} {c.last_name}
-                  </td>
+                  <td>{c.name}</td>
                   <td>
                     {c.email && <a href={`mailto:${c.email}`}>{c.email}</a>}
                   </td>
@@ -106,8 +103,7 @@ function CustomerForm({ customer, onDone }: { customer?: Customer; onDone: () =>
   const [form, setForm] = useState<CustomerCreate>(() =>
     customer
       ? {
-          first_name: customer.first_name,
-          last_name: customer.last_name,
+          name: customer.name,
           email: customer.email,
           phone: customer.phone,
           address: customer.address,
@@ -133,13 +129,10 @@ function CustomerForm({ customer, onDone }: { customer?: Customer; onDone: () =>
 
   return (
     <form className="card form" onSubmit={submit}>
-      <h2>{customer ? `Edit ${customer.first_name} ${customer.last_name}` : 'New customer'}</h2>
+      <h2>{customer ? `Edit ${customer.name}` : 'New customer'}</h2>
       <div className="form-grid">
-        <Field label="First name">
-          <input value={form.first_name} onChange={set('first_name')} maxLength={50} required autoFocus />
-        </Field>
-        <Field label="Last name">
-          <input value={form.last_name} onChange={set('last_name')} maxLength={50} required />
+        <Field label="Name" wide>
+          <input value={form.name} onChange={set('name')} maxLength={100} required autoFocus />
         </Field>
         <Field label="Email (optional)">
           <input type="email" value={form.email} onChange={set('email')} maxLength={255} />

@@ -85,8 +85,7 @@ def blank_or_email(value: str) -> str:
 
 
 class CustomerBase(SQLModel):
-    first_name: str = Field(max_length=50)
-    last_name: str = Field(max_length=50)
+    name: str = Field(max_length=100)
     # Blank means no email on file. Unique only when non-empty: see ix_customer_email below.
     email: str = Field(default="", max_length=255, sa_column_kwargs={"server_default": ""})
     # Blank means not on file.
@@ -118,8 +117,7 @@ class CustomerCreate(CustomerBase):
 
 
 class CustomerUpdate(PatchSchema):
-    first_name: str | None = Field(default=None, max_length=50)
-    last_name: str | None = Field(default=None, max_length=50)
+    name: str | None = Field(default=None, max_length=100)
     email: str | None = Field(default=None, max_length=255)
     phone: str | None = Field(default=None, max_length=30)
     address: str | None = Field(default=None, max_length=255)
