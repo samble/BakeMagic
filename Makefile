@@ -2,12 +2,11 @@
 
 .DEFAULT_GOAL := help
 
-PYTHON ?= python3
+UV ?= uv
 NPM ?= npm
-VENV := .venv
-BIN := $(VENV)/bin
+RUN := $(UV) run
 
-.PHONY: help venv frontend-install setup dev dev-backend dev-frontend migrate db-reset seed-db \
+.PHONY: help sync frontend-install setup dev dev-backend dev-frontend migrate db-reset seed-db \
 	test test-backend test-frontend test-smoke lint
 
 help: ## List the available commands
@@ -15,15 +14,13 @@ help: ## List the available commands
 
 # ---------- setup ----------
 
-venv: ## Create .venv and install the backend with dev tools
-	$(PYTHON) -m venv $(VENV)
-	$(BIN)/pip install --upgrade pip
-	$(BIN)/pip install -e ".[dev]"
+sync: ## Install the backend and dev tools into .venv with uv (from uv.lock)
+	$(UV) sync
 
 frontend-install: ## Install frontend dependencies
 	cd frontend && $(NPM) install
 
-setup: venv frontend-install ## venv + frontend-install
+setup: sync frontend-install ## sync + frontend-install
 
 # ---------- run ----------
 
@@ -34,7 +31,7 @@ dev: ## Run the backend (:8000) and frontend (:5173) dev servers; Ctrl-C stops b
 	wait
 
 dev-backend: ## Run the API with auto-reload on :8000
-	$(BIN)/fastapi dev app/main.py --port 8000
+	$(RUN) fastapi dev app/main.py --port 8000
 
 dev-frontend: ## Run the Vite dev server on :5173 (proxies /api to :8000)
 	cd frontend && $(NPM) run dev
@@ -42,21 +39,21 @@ dev-frontend: ## Run the Vite dev server on :5173 (proxies /api to :8000)
 # ---------- database ----------
 
 migrate: ## Apply all pending migrations
-	$(BIN)/alembic upgrade head
+	$(RUN) alembic upgrade head
 
 db-reset: ## Drop ALL tables and data, then re-run migrations (asks first; YES=1 skips)
-	$(BIN)/python scripts/drop_tables.py $(if $(YES),--yes)
+	$(RUN) python scripts/drop_tables.py $(if $(YES),--yes)
 	$(MAKE) --no-print-directory migrate
 
 seed-db: migrate ## Load the sample data in seed/ (after migrating); expects those ids to be free
-	$(BIN)/alembic -n seed upgrade head
+	$(RUN) alembic -n seed upgrade head
 
 # ---------- checks ----------
 
 test: test-backend test-frontend test-smoke ## Run all tests
 
 test-backend: ## Run the pytest suite (in-memory SQLite, no database needed)
-	$(BIN)/pytest
+	$(RUN) pytest
 
 test-frontend: ## Lint and type-check the frontend
 	cd frontend && $(NPM) run lint && $(NPM) exec -- tsc -b
@@ -65,5 +62,5 @@ test-smoke: ## Start the real API and built frontend on spare ports and check th
 	NPM=$(NPM) scripts/smoke.sh
 
 lint: ## Lint backend (ruff) and frontend (oxlint)
-	$(BIN)/ruff check .
+	$(RUN) ruff check .
 	cd frontend && $(NPM) run lint

@@ -212,3 +212,15 @@ New prompts are appended automatically by `.claude/hooks/log_prompt.py`, a
 ### 2026-11-28 06:06 EST · session `0cdcf742`
 
 > commit files
+
+### 2026-11-28 06:06 EST · session `0cdcf742`
+
+> login to aws tools
+
+### 2026-11-28 06:13 EST · session `0cdcf742`
+
+> convert app to run on uv instead of virtualenv
+
+### 2026-11-28 06:15 EST · session `0cdcf742`
+
+> yes

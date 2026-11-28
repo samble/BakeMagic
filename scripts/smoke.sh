@@ -39,7 +39,7 @@ check() { # expected-status url [text that must appear in the body]
 }
 
 echo "Starting API on :$API_PORT"
-setsid .venv/bin/fastapi run app/main.py --port "$API_PORT" >/tmp/bakemagic-smoke-api.log 2>&1 &
+setsid uv run fastapi run app/main.py --port "$API_PORT" >/tmp/bakemagic-smoke-api.log 2>&1 &
 pids+=($!)
 
 echo "Building frontend"

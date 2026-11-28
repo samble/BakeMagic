@@ -19,8 +19,8 @@ README.
 
 ```bash
 pg_isready -h localhost            # expect: accepting connections
-.venv/bin/alembic upgrade head     # bring the schema up to date; safe to re-run
-.venv/bin/alembic current          # should end with "(head)"
+uv run alembic upgrade head     # bring the schema up to date; safe to re-run
+uv run alembic current          # should end with "(head)"
 ```
 
 If Postgres is down, ask the user to start it (`sudo systemctl start postgresql`);
@@ -31,7 +31,7 @@ don't try to install or reconfigure it.
 Run in the background (Bash `run_in_background: true`):
 
 ```bash
-.venv/bin/fastapi dev app/main.py --port 8000
+uv run fastapi dev app/main.py --port 8000
 ```
 
 Wait for it, then smoke-test:

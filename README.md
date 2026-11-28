@@ -10,7 +10,7 @@ Run `make` to list them all. The common ones:
 
 | Command | What it does |
 |---|---|
-| `make setup` | create `.venv`, install the backend with dev tools, and install frontend dependencies |
+| `make setup` | `uv sync` the backend and dev tools into `.venv`, and install frontend dependencies |
 | `make dev` | run the API (:8000) and frontend (:5173) dev servers together; Ctrl-C stops both |
 | `make migrate` | apply pending migrations |
 | `make db-reset` | drop **all** tables and data, then re-run migrations (asks first; `YES=1` skips the prompt) |
@@ -23,11 +23,14 @@ Seed data lives in `seed/`, a separate Alembic environment (`alembic -n seed ...
 
 ## Setup
 
+Python dependencies are managed with [uv](https://docs.astral.sh/uv/). `pyproject.toml` lists them and `uv.lock` pins exact versions; commit both.
+
 ```bash
-python3 -m venv .venv
-.venv/bin/pip install -e ".[dev]"
+uv sync                       # creates .venv with Python 3.12+, the app and the dev tools
 cp .env.example .env          # then set DATABASE_URL
 ```
+
+`uv run <command>` runs a command in the project environment, syncing it first if `pyproject.toml` or `uv.lock` changed, so there's no venv to activate. Add a dependency with `uv add <package>` (or `uv add --dev <package>` for a dev tool).
 
 ### Postgres
 
@@ -47,13 +50,13 @@ CREATE DATABASE bakemagic OWNER bakemagic;
 Then create the tables:
 
 ```bash
-.venv/bin/alembic upgrade head
+uv run alembic upgrade head
 ```
 
 ## Run
 
 ```bash
-.venv/bin/fastapi dev app/main.py
+uv run fastapi dev app/main.py
 ```
 
 - Interactive docs: http://127.0.0.1:8000/docs
@@ -61,11 +64,11 @@ Then create the tables:
 
 ## Lint
 
-[Ruff](https://docs.astral.sh/ruff/) is configured in `pyproject.toml` (installed with the `dev` extra):
+[Ruff](https://docs.astral.sh/ruff/) is configured in `pyproject.toml` (installed with the `dev` dependency group):
 
 ```bash
-.venv/bin/ruff check .         # report problems
-.venv/bin/ruff check . --fix   # fix what can be fixed automatically
+uv run ruff check .         # report problems
+uv run ruff check . --fix   # fix what can be fixed automatically
 ```
 
 New Alembic migrations are run through `ruff check --fix` automatically when generated.
@@ -117,9 +120,9 @@ Standing orders are recurring weekly orders for a customer on chosen days. They 
 Models live in `app/models.py`. After changing them:
 
 ```bash
-.venv/bin/alembic revision --autogenerate -m "describe the change"
+uv run alembic revision --autogenerate -m "describe the change"
 # review the generated file in migrations/versions/, then
-.venv/bin/alembic upgrade head
+uv run alembic upgrade head
 ```
 
 `alembic upgrade head --sql` prints the SQL without touching the database. Alembic reads `DATABASE_URL` from the app settings, so there's no URL in `alembic.ini`.
@@ -127,7 +130,7 @@ Models live in `app/models.py`. After changing them:
 ## Tests
 
 ```bash
-.venv/bin/pytest
+uv run pytest
 ```
 
 The tests run against an in-memory SQLite database, so they need no server.
