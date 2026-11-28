@@ -180,3 +180,11 @@ New prompts are appended automatically by `.claude/hooks/log_prompt.py`, a
 ### 2026-11-26 10:40 EST · session `ed49d7af`
 
 > add prompt history to this project's repo and keep it up to date as we build it
+
+### 2026-11-27 19:44 EST · session `ed49d7af`
+
+> next we will add a calendar view for standing orders. add a new app section, and a calendar view that shows a given month day by day. no need to hook this up to orders yet
+
+### 2026-11-27 19:45 EST · session `ed49d7af`
+
+> add app-features to git
