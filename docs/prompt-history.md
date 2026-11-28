@@ -188,3 +188,11 @@ New prompts are appended automatically by `.claude/hooks/log_prompt.py`, a
 ### 2026-11-27 19:45 EST · session `ed49d7af`
 
 > add app-features to git
+
+### 2026-11-27 19:47 EST · session `ed49d7af`
+
+> remove the standing orders from the calendar view. don't query the api for anything yet
+
+### 2026-11-27 19:49 EST · session `ed49d7af`
+
+> commit

@@ -26,6 +26,8 @@ New prompts are appended automatically by `.claude/hooks/log_prompt.py`, a
 `UserPromptSubmit` hook configured in `.claude/settings.json`.
 """
 
+# Exact prompt texts to leave out of the history (whitespace-trimmed).
+EXCLUDED: set[str] = set()
 
 
 def entry(prompt: str, when: datetime, session_id: str) -> str:

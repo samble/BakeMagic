@@ -1,4 +1,5 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router'
+import CalendarPage from './pages/CalendarPage'
 import CustomersPage from './pages/CustomersPage'
 import NewOrderPage from './pages/NewOrderPage'
 import OrdersPage from './pages/OrdersPage'
@@ -16,6 +17,7 @@ export default function App() {
         <nav className="nav">
           <NavLink to="/orders">Orders</NavLink>
           <NavLink to="/standing-orders">Standing orders</NavLink>
+          <NavLink to="/calendar">Calendar</NavLink>
           <NavLink to="/products">Products</NavLink>
           <NavLink to="/customers">Customers</NavLink>
         </nav>
@@ -26,6 +28,7 @@ export default function App() {
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/new" element={<NewOrderPage />} />
           <Route path="/standing-orders" element={<StandingOrdersPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="*" element={<p className="muted">Page not found.</p>} />
