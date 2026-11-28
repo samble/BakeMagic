@@ -224,3 +224,27 @@ New prompts are appended automatically by `.claude/hooks/log_prompt.py`, a
 ### 2026-11-28 06:15 EST · session `0cdcf742`
 
 > yes
+
+### 2026-11-28 06:34 EST · session `0cdcf742`
+
+> review my dockerfile
+
+### 2026-11-28 06:36 EST · session `0cdcf742`
+
+> fix 1-5, don't commit. this will get deployed to ecs
+
+### 2026-11-28 06:38 EST · session `0cdcf742`
+
+> high
+
+### 2026-11-28 06:58 EST · session `a522608d`
+
+> add a make target to build a docker image for the fastapi app
+
+### 2026-11-28 07:02 EST · session `a522608d`
+
+> add the frontend build to the same docker image
+
+### 2026-11-28 07:09 EST · session `a522608d`
+
+> commit this

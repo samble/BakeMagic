@@ -1,0 +1,14 @@
+# Keep the build context to what the image build needs.
+.venv
+.git
+.env
+**/__pycache__
+*.egg-info
+.pytest_cache
+.ruff_cache
+frontend/node_modules
+frontend/dist
+tests
+docs
+.claude
+.vscode

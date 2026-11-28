@@ -5,9 +5,13 @@
 UV ?= uv
 NPM ?= npm
 RUN := $(UV) run
+DOCKER ?= docker
+IMAGE ?= bakemagic
+# Tag images with the short commit hash (plus -dirty when there are uncommitted changes).
+TAG ?= $(shell git describe --always --dirty 2>/dev/null || echo dev)
 
 .PHONY: help sync frontend-install setup dev dev-backend dev-frontend migrate db-reset seed-db \
-	test test-backend test-frontend test-smoke lint
+	test test-backend test-frontend test-smoke lint docker-build
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  \033[36m%-17s\033[0m %s\n", $$1, $$2}'
@@ -64,3 +68,8 @@ test-smoke: ## Start the real API and built frontend on spare ports and check th
 lint: ## Lint backend (ruff) and frontend (oxlint)
 	$(RUN) ruff check .
 	cd frontend && $(NPM) run lint
+
+# ---------- docker ----------
+
+docker-build: ## Build the app image (API + frontend), tagged bakemagic:<commit> and :latest (IMAGE=, TAG= override)
+	$(DOCKER) build -t $(IMAGE):$(TAG) -t $(IMAGE):latest .

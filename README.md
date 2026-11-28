@@ -16,6 +16,7 @@ Run `make` to list them all. The common ones:
 | `make db-reset` | drop **all** tables and data, then re-run migrations (asks first; `YES=1` skips the prompt) |
 | `make seed-db` | migrate, then load the sample data in `seed/` (products, customers, orders, standing orders); `make db-reset YES=1 seed-db` gives a fresh, populated database |
 | `make test` | backend tests, frontend lint and type check, then a smoke test against the real API and a production frontend build |
+| `make docker-build` | build one image with the API and the built frontend, tagged `bakemagic:<commit>` and `bakemagic:latest` |
 
 Seed data lives in `seed/`, a separate Alembic environment (`alembic -n seed ...`) with its own `alembic_seed_version` table, so `make migrate` never inserts data. The seed keeps the original row ids, so it expects those ids to be free; `alembic -n seed downgrade base` removes the seeded rows again.
 
@@ -93,7 +94,13 @@ Start the API first. The dev server forwards `/api/*` to it at `http://127.0.0.1
 | Products | add, edit inline, retire or put back on sale, delete (refused if the product is on an order) |
 | Customers | add, edit, search |
 
-`npm run build` type-checks and writes static files to `frontend/dist/`. In production, serve those and route `/api/*` to the API from the same origin, for example with nginx.
+`npm run build` type-checks and writes static files to `frontend/dist/`. In production, `app/web.py` serves both from one origin: the API under `/api/*` and the built frontend everywhere else (unknown paths get `index.html`, so client-side routes survive a refresh). The Docker image runs it:
+
+```sh
+make docker-build
+docker run -p 8000:8000 -e DATABASE_URL=postgresql+psycopg://user:pass@host:5432/bakemagic bakemagic
+docker run --rm -e DATABASE_URL=... bakemagic alembic upgrade head   # migrations, as a separate step
+```
 
 `src/api.ts` holds hand-written TypeScript types that mirror `app/models.py`; update both together.
 
