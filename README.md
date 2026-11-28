@@ -17,6 +17,7 @@ Run `make` to list them all. The common ones:
 | `make seed-db` | migrate, then load the sample data in `seed/` (products, customers, orders, standing orders); `make db-reset YES=1 seed-db` gives a fresh, populated database |
 | `make test` | backend tests, frontend lint and type check, then a smoke test against the real API and a production frontend build |
 | `make docker-build` | build one image with the API and the built frontend, tagged `bakemagic:<commit>` and `bakemagic:latest` |
+| `make docker-run` | build the image, run its migrations, then serve it on http://localhost:8080 against the local Postgres (host networking, Linux); `DOCKER_PORT=` and `DOCKER_DATABASE_URL=` override |
 
 Seed data lives in `seed/`, a separate Alembic environment (`alembic -n seed ...`) with its own `alembic_seed_version` table, so `make migrate` never inserts data. The seed keeps the original row ids, so it expects those ids to be free; `alembic -n seed downgrade base` removes the seeded rows again.
 

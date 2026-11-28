@@ -9,9 +9,14 @@ DOCKER ?= docker
 IMAGE ?= bakemagic
 # Tag images with the short commit hash (plus -dirty when there are uncommitted changes).
 TAG ?= $(shell git describe --always --dirty 2>/dev/null || echo dev)
+# docker-run uses the host's network (Linux), so localhost inside the container is this
+# machine: it reaches a Postgres that only listens on 127.0.0.1.
+DOCKER_PORT ?= 8080
+DOCKER_DATABASE_URL ?= postgresql+psycopg://bakemagic:bakemagic@localhost:5432/bakemagic
+DOCKER_RUN := $(DOCKER) run --rm --init --network host -e DATABASE_URL=$(DOCKER_DATABASE_URL)
 
 .PHONY: help sync frontend-install setup dev dev-backend dev-frontend migrate db-reset seed-db \
-	test test-backend test-frontend test-smoke lint docker-build
+	test test-backend test-frontend test-smoke lint docker-build docker-run
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  \033[36m%-17s\033[0m %s\n", $$1, $$2}'
@@ -73,3 +78,8 @@ lint: ## Lint backend (ruff) and frontend (oxlint)
 
 docker-build: ## Build the app image (API + frontend), tagged bakemagic:<commit> and :latest (IMAGE=, TAG= override)
 	$(DOCKER) build -t $(IMAGE):$(TAG) -t $(IMAGE):latest .
+
+docker-run: docker-build ## Build, migrate, then run the image on :8080 (DOCKER_PORT=, DOCKER_DATABASE_URL=); Ctrl-C stops it
+	$(DOCKER_RUN) $(IMAGE):$(TAG) alembic upgrade head
+	@echo "BakeMagic on http://localhost:$(DOCKER_PORT) (API docs at /api/docs)"
+	$(DOCKER_RUN) $(IMAGE):$(TAG) fastapi run app/web.py --port $(DOCKER_PORT)
