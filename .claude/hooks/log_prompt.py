@@ -12,6 +12,7 @@ Standard library only, so it runs with any python3.
 """
 
 import json
+import re
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -34,6 +35,14 @@ def entry(prompt: str, when: datetime, session_id: str) -> str:
     stamp = when.astimezone().strftime("%Y-%m-%d %H:%M %Z")
     quoted = "\n".join(f"> {line}" if line else ">" for line in prompt.strip().splitlines())
     return f"\n### {stamp} · session `{session_id[:8]}`\n\n{quoted}\n"
+
+
+PASTED = re.compile(r'<pasted_content id="[^"]*">\n?(.*?)\n?</pasted_content id="[^"]*">', re.S)
+
+
+def unwrap_pasted(text: str) -> str:
+    """Pasted text arrives wrapped in <pasted_content> tags; keep just what was pasted."""
+    return PASTED.sub(lambda m: m.group(1), text)
 
 
 def is_real_prompt(text: str) -> bool:
@@ -81,7 +90,10 @@ def prompts_from_transcript(path: Path):
         content = record.get("message", {}).get("content")
         if isinstance(content, list):  # tool results have no text parts
             content = "\n".join(p.get("text", "") for p in content if p.get("type") == "text")
-        if not isinstance(content, str) or not is_real_prompt(content):
+        if not isinstance(content, str):
+            continue
+        content = unwrap_pasted(content)
+        if not is_real_prompt(content):
             continue
         when = datetime.fromisoformat(record["timestamp"].replace("Z", "+00:00"))
         yield when, record.get("sessionId", path.stem), content
@@ -96,7 +108,7 @@ def backfill(transcripts: list[str]) -> None:
 
 def hook() -> None:
     payload = json.load(sys.stdin)
-    prompt = payload.get("prompt", "")
+    prompt = unwrap_pasted(payload.get("prompt", ""))
     if is_real_prompt(prompt):
         append(prompt, datetime.now(UTC), payload.get("session_id", "unknown"))
 

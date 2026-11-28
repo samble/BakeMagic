@@ -196,3 +196,19 @@ New prompts are appended automatically by `.claude/hooks/log_prompt.py`, a
 ### 2026-11-27 19:49 EST · session `ed49d7af`
 
 > commit
+
+### 2026-11-28 05:40 EST · session `ed49d7af`
+
+> Set up Agent Toolkit for AWS by following instructions:
+> https://raw.githubusercontent.com/aws/agent-toolkit-for-aws/refs/heads/main/setup-instructions/setup.md
+>
+> Your AWS Region is: us-east-2
+> AWS experience: The new AWS experience
+
+### 2026-11-28 06:00 EST · session `0cdcf742`
+
+> what were we doing
+
+### 2026-11-28 06:06 EST · session `0cdcf742`
+
+> commit files
